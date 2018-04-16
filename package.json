@@ -1,6 +1,6 @@
 {
   "name": "@theqrl/wallet-helpers",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "QRL wallet helpers",
   "main": "index.js",
   "directories": {
@@ -19,6 +19,9 @@
   "bugs": {
     "url": "https://github.com/theqrl/wallet-helpers/issues"
   },
+  "publishConfig": {
+      "access": "public"
+    },
   "homepage": "https://github.com/theqrl/wallet-helpers#readme",
   "devDependencies": {
     "chai": "^4.1.2",
