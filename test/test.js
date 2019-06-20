@@ -25,3 +25,11 @@ describe('#QRLAddressFromEPKHex', function() {
     expect(result).to.equal('Q000400846365cd097082ce4404329d143959c8e4557d19b866ce8bf5ad7c9eb409d036651f62bd');
   })
 });
+
+describe('#QRLAddressFromEPKHex', function() {
+  it('calling with incorrect ePK length throws an error', function () {
+    expect(() => {
+      helpers.QRLAddressFromEPKHex('12345678901234567890')
+    }).to.throw();
+  })
+});
