@@ -1,6 +1,6 @@
 {
   "name": "@theqrl/wallet-helpers",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "QRL wallet helpers",
   "main": "index.js",
   "directories": {
