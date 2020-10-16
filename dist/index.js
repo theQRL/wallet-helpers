@@ -2,23 +2,7 @@
 
 var sha256 = require('js-sha256');
 
-Array.prototype.equals = function (array, strict) {
-  if (!array) return false;
-  if (arguments.length == 1) strict = true;
-  if (this.length != array.length) return false;
-
-  for (var i = 0; i < this.length; i++) {
-    if (this[i] instanceof Array && array[i] instanceof Array) {
-      if (!this[i].equals(array[i], strict)) return false;
-    } else if (strict && this[i] != array[i]) {
-      return false;
-    } else if (!strict) {
-      return this.sort().equals(array.sort(), true);
-    }
-  }
-
-  return true;
-};
+var isEqual = require('lodash.isequal');
 
 function hexToBytes(hex) {
   for (var bytes = [], c = 0; c < hex.length; c += 2) {
@@ -111,16 +95,18 @@ function _getWalletFileType(wallet) {
   var pythonNode = ['addresses', 'encrypted', 'version'];
   var convertedWebWallet = ['pk', 'hexseed', 'mnemonic', 'height', 'hashFunction', 'signatureType', 'index', 'address', 'encrypted'];
 
-  if (pythonNode.equals(Object.keys(wallet), false)) {
+  if (isEqual(pythonNode, Object.keys(wallet))) {
     return 'PYTHON-NODE';
   }
 
-  if (webWallet.equals(Object.keys(wallet[0]), false)) {
-    return 'WEB-WALLET';
-  }
+  if (wallet instanceof Array) {
+    if (isEqual(webWallet, Object.keys(wallet[0]))) {
+      return 'WEB-WALLET';
+    }
 
-  if (convertedWebWallet.equals(Object.keys(wallet[0]), false)) {
-    return 'CONVERTED-WEB-WALLET';
+    if (isEqual(convertedWebWallet, Object.keys(wallet[0]))) {
+      return 'CONVERTED-WEB-WALLET';
+    }
   }
 
   return 'UNKNOWN';
