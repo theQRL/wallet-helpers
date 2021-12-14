@@ -4,6 +4,8 @@ var sha256 = require('js-sha256');
 
 var isEqual = require('lodash.isequal');
 
+var _v3Wallet = require('./v3wallet').v3Wallet;
+
 function hexToBytes(hex) {
   for (var bytes = [], c = 0; c < hex.length; c += 2) {
     bytes.push(parseInt(hex.substr(c, 2), 16));
@@ -147,46 +149,59 @@ module.exports = {
    * @return {string} version
    */
   version: function version() {
-    return '2.1.0';
+    return "2.1.0";
   },
   QRLAddressFromEPKHex: function QRLAddressFromEPKHex(ePK) {
     if (ePK === undefined) {
-      throw new Error('No ePK parameter');
+      throw new Error("No ePK parameter");
     }
 
     if (ePK.length !== 134) {
-      throw new Error('ePK length invalid');
+      throw new Error("ePK length invalid");
     }
 
     return doConvert(ePK);
   },
   checkWeightsAndThreshold: function checkWeightsAndThreshold(arr, threshold) {
     if (arr === undefined || threshold === undefined) {
-      throw new Error('Missing parameter');
+      throw new Error("Missing parameter");
     }
 
     return _checkWeightsAndThreshold(arr, threshold);
   },
   isWalletFileDeprecated: function isWalletFileDeprecated(wallet) {
     if (wallet === undefined) {
-      throw new Error('Missing parameter');
+      throw new Error("Missing parameter");
     }
 
     return _isWalletFileDeprecated(wallet);
   },
   getWalletFileType: function getWalletFileType(wallet) {
     if (wallet === undefined) {
-      throw new Error('Missing parameter');
+      throw new Error("Missing parameter");
     }
 
     return _getWalletFileType(wallet);
   },
   pythonNodeToWebWallet: function pythonNodeToWebWallet(wallet) {
     if (wallet === undefined) {
-      throw new Error('Missing parameter');
+      throw new Error("Missing parameter");
     }
 
     return _pythonNodeToWebWallet(wallet);
+  },
+  v3Wallet: function v3Wallet(json, encrypted, password) {
+    if (json === undefined || encrypted === undefined) {
+      throw new Error("Missing parameter");
+    }
+
+    if (encrypted === true && password === undefined) {
+      throw new Error("Missing password");
+    }
+
+    var newWallet = _v3Wallet(json, encrypted, password);
+
+    return newWallet;
   }
 };
 //# sourceMappingURL=index.js.map

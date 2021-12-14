@@ -1,5 +1,6 @@
 var sha256 = require('js-sha256')
 var isEqual = require('lodash.isequal')
+var v3Wallet = require('./v3wallet').v3Wallet
 
 function hexToBytes(hex) {
   for (var bytes = [], c = 0; c < hex.length; c += 2)
@@ -135,40 +136,50 @@ module.exports = {
    * Reports the current module version
    * @return {string} version
    */
-  version: function() {
-    return '2.1.0'
+  version: function () {
+    return "3.0.0"
   },
-  QRLAddressFromEPKHex: function(ePK) {
+  QRLAddressFromEPKHex: function (ePK) {
     if (ePK === undefined) {
-      throw new Error('No ePK parameter')
+      throw new Error("No ePK parameter")
     }
     if (ePK.length !== 134) {
-      throw new Error('ePK length invalid')
+      throw new Error("ePK length invalid")
     }
     return doConvert(ePK)
   },
-  checkWeightsAndThreshold: function(arr, threshold) {
+  checkWeightsAndThreshold: function (arr, threshold) {
     if (arr === undefined || threshold === undefined) {
-      throw new Error('Missing parameter')
+      throw new Error("Missing parameter")
     }
     return checkWeightsAndThreshold(arr, threshold)
   },
-  isWalletFileDeprecated: function(wallet) {
+  isWalletFileDeprecated: function (wallet) {
     if (wallet === undefined) {
-      throw new Error('Missing parameter')
+      throw new Error("Missing parameter")
     }
     return isWalletFileDeprecated(wallet)
   },
-  getWalletFileType: function(wallet) {
+  getWalletFileType: function (wallet) {
     if (wallet === undefined) {
-      throw new Error('Missing parameter')
+      throw new Error("Missing parameter")
     }
     return getWalletFileType(wallet)
   },
-  pythonNodeToWebWallet: function(wallet) {
+  pythonNodeToWebWallet: function (wallet) {
     if (wallet === undefined) {
-      throw new Error('Missing parameter')
+      throw new Error("Missing parameter")
     }
     return pythonNodeToWebWallet(wallet)
+  },
+  v3Wallet: function (json, encrypted, password) {
+    if (json === undefined || encrypted === undefined) {
+      throw new Error("Missing parameter")
+    }
+    if (encrypted === true && password === undefined) {
+      throw new Error("Missing password")
+    }
+    const newWallet = v3Wallet(json, encrypted, password)
+    return newWallet
   },
 }
