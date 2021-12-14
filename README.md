@@ -15,3 +15,7 @@ TODO
 ## Tests
 
   `npm test`
+
+## Coverage
+
+  `npm run cover`
