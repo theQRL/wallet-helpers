@@ -221,7 +221,7 @@ module.exports = {
    * @return {string} version
    */
   version: function () {
-    return "3.1.1"
+    return "4.0.0"
   },
   QRLAddressFromEPKHex: function (ePK) {
     if (ePK === undefined) {
