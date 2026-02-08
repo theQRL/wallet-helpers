@@ -1,6 +1,6 @@
 var sha256 = require('js-sha256')
-var isEqual = require('lodash.isequal')
-var v3Wallet = require('./v3wallet').v3Wallet
+var isEqual = require('util').isDeepStrictEqual
+var v3WalletHelpers = require('./v3wallet')
 
 function hexToBytes(hex) {
   for (var bytes = [], c = 0; c < hex.length; c += 2)
@@ -131,13 +131,97 @@ function pythonNodeToWebWallet(wallet) {
   return output
 }
 
+function normalizeWalletInput(input) {
+  if (typeof input === 'string') {
+    return JSON.parse(input)
+  }
+  return input
+}
+
+function isV3Envelope(wallet) {
+  return wallet
+    && typeof wallet === 'object'
+    && !Array.isArray(wallet)
+    && wallet.version === 3
+    && typeof wallet.encrypted === 'boolean'
+    && typeof wallet.data === 'string'
+}
+
+function isLegacyV3Array(wallet) {
+  return Array.isArray(wallet)
+    && wallet.length > 0
+    && wallet[0]
+    && wallet[0].version === 3
+    && typeof wallet[0].mnemonic === 'string'
+    && typeof wallet[0].hexseed === 'string'
+    && typeof wallet[0].address === 'string'
+    && typeof wallet[0].pk === 'string'
+    && wallet[0].data === undefined
+}
+
+function convertWalletToV3(input, encrypted, password, options) {
+  if (input === undefined || encrypted === undefined) {
+    throw new Error("Missing parameter")
+  }
+  if (encrypted === true && password === undefined) {
+    throw new Error("Missing password")
+  }
+
+  const wallet = normalizeWalletInput(input)
+  if (isV3Envelope(wallet)) {
+    return wallet
+  }
+
+  let payload = wallet
+  if (isLegacyV3Array(wallet)) {
+    payload = v3WalletHelpers.v3WalletDecrypt(wallet, password)
+  } else {
+    const walletType = getWalletFileType(wallet)
+    if (walletType === 'PYTHON-NODE') {
+      payload = pythonNodeToWebWallet(wallet)
+    } else if (walletType !== 'WEB-WALLET' && walletType !== 'CONVERTED-WEB-WALLET') {
+      throw new Error("Unsupported wallet format")
+    }
+  }
+
+  return v3WalletHelpers.v3Wallet(payload, encrypted, password, options)
+}
+
+async function convertWalletToV3Async(input, encrypted, password, options) {
+  if (input === undefined || encrypted === undefined) {
+    throw new Error("Missing parameter")
+  }
+  if (encrypted === true && password === undefined) {
+    throw new Error("Missing password")
+  }
+
+  const wallet = normalizeWalletInput(input)
+  if (isV3Envelope(wallet)) {
+    return wallet
+  }
+
+  let payload = wallet
+  if (isLegacyV3Array(wallet)) {
+    payload = await v3WalletHelpers.v3WalletDecryptAsync(wallet, password)
+  } else {
+    const walletType = getWalletFileType(wallet)
+    if (walletType === 'PYTHON-NODE') {
+      payload = pythonNodeToWebWallet(wallet)
+    } else if (walletType !== 'WEB-WALLET' && walletType !== 'CONVERTED-WEB-WALLET') {
+      throw new Error("Unsupported wallet format")
+    }
+  }
+
+  return v3WalletHelpers.v3WalletAsync(payload, encrypted, password, options)
+}
+
 module.exports = {
   /**
    * Reports the current module version
    * @return {string} version
    */
   version: function () {
-    return "3.1.1"
+    return "4.0.0"
   },
   QRLAddressFromEPKHex: function (ePK) {
     if (ePK === undefined) {
@@ -172,14 +256,34 @@ module.exports = {
     }
     return pythonNodeToWebWallet(wallet)
   },
-  v3Wallet: function (json, encrypted, password) {
+  convertWalletToV3: function (wallet, encrypted, password, options) {
+    return convertWalletToV3(wallet, encrypted, password, options)
+  },
+  convertWalletToV3Async: function (wallet, encrypted, password, options) {
+    return convertWalletToV3Async(wallet, encrypted, password, options)
+  },
+  v3Wallet: function (json, encrypted, password, options) {
     if (json === undefined || encrypted === undefined) {
       throw new Error("Missing parameter")
     }
     if (encrypted === true && password === undefined) {
       throw new Error("Missing password")
     }
-    const newWallet = v3Wallet(json, encrypted, password)
-    return newWallet
+    return v3WalletHelpers.v3Wallet(json, encrypted, password, options)
+  },
+  v3WalletAsync: function (json, encrypted, password, options) {
+    return v3WalletHelpers.v3WalletAsync(json, encrypted, password, options)
+  },
+  v3WalletDecrypt: function (input, password) {
+    return v3WalletHelpers.v3WalletDecrypt(input, password)
+  },
+  v3WalletDecryptAsync: function (input, password) {
+    return v3WalletHelpers.v3WalletDecryptAsync(input, password)
+  },
+  walletDataDecrypt: function (text, password) {
+    return v3WalletHelpers.walletDataDecrypt(text, password)
+  },
+  walletDataEncrypt: function (text, password) {
+    return v3WalletHelpers.walletDataEncrypt(text, password)
   },
 }

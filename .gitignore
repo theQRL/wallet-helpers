@@ -60,3 +60,4 @@ typings/
 dist/tests/**
 test/nyc/**
 test/.nyc-temp/**
+example/bundle.js
