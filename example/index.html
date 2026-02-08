@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>wallet-helpers v3 minimal example</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 24px;
+        color: #1f2933;
+      }
+      textarea, input {
+        width: 100%;
+        box-sizing: border-box;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      }
+      textarea {
+        min-height: 160px;
+      }
+      .row {
+        margin: 12px 0;
+      }
+      .actions {
+        display: flex;
+        gap: 8px;
+        margin: 12px 0;
+      }
+      button {
+        padding: 8px 12px;
+      }
+      #status {
+        margin-top: 8px;
+        font-size: 14px;
+        padding: 6px 8px;
+        border-radius: 4px;
+        background: #eef2f6;
+        color: #1f2933;
+        min-height: 18px;
+      }
+      #status.busy {
+        background: #b00020;
+        color: #fff;
+      }
+      pre {
+        background: #f4f5f7;
+        padding: 12px;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>wallet-helpers v3 example</h1>
+    <p>This page loads <code>bundle.js</code>, which is built via <code>npm run build</code> (or <code>npm run build:example</code>).</p>
+    <div id="status"></div>
+
+    <div class="row">
+      <label for="wallet-json">Wallet JSON</label>
+      <textarea id="wallet-json"></textarea>
+    </div>
+
+    <div class="row">
+      <label for="password">Password</label>
+      <input id="password" type="password" value="example password" />
+    </div>
+
+    <div class="actions">
+      <button id="encrypt">Encrypt v3</button>
+      <button id="decrypt">Decrypt v3</button>
+    </div>
+
+    <div class="row">
+      <label>Output</label>
+      <pre id="output"></pre>
+    </div>
+
+    <script src="bundle.js"></script>
+    <script>
+      (function () {
+        var status = document.getElementById('status')
+        function setStatus(message, isBusy) {
+          status.textContent = message
+          if (isBusy) {
+            status.classList.add('busy')
+          } else {
+            status.classList.remove('busy')
+          }
+        }
+
+        var helpers = window.WalletHelpersBrowser
+        if (!helpers) {
+          setStatus('Missing bundle.js. Run npm run build.', false)
+          return
+        }
+        var walletJson = document.getElementById('wallet-json')
+        var password = document.getElementById('password')
+        var output = document.getElementById('output')
+        var lastEnvelope = null
+
+        var sample = [{
+          address: 'Q010400abcdef',
+          pk: '010400deadbeef',
+          hexseed: '010400feedface',
+          mnemonic: 'sample mnemonic',
+          height: 0,
+          encrypted: false,
+          version: 3,
+        }]
+        walletJson.value = JSON.stringify(sample, null, 2)
+
+        function setOutput(value) {
+          output.textContent = value
+        }
+
+        var encryptButton = document.getElementById('encrypt')
+        var decryptButton = document.getElementById('decrypt')
+
+        function setBusy(isBusy) {
+          encryptButton.disabled = isBusy
+          decryptButton.disabled = isBusy
+        }
+
+        encryptButton.addEventListener('click', async function () {
+          try {
+            setStatus('Please wait...', true)
+            setBusy(true)
+            try {
+              JSON.parse(walletJson.value)
+            } catch (parseErr) {
+              setStatus('Invalid wallet JSON.', false)
+              setBusy(false)
+              return
+            }
+            lastEnvelope = await helpers.v3WalletAsync(walletJson.value, true, password.value)
+            setOutput(JSON.stringify(lastEnvelope, null, 2))
+            setStatus('Encrypted.', false)
+          } catch (err) {
+            setStatus(err.message, false)
+          } finally {
+            setBusy(false)
+          }
+        })
+
+        decryptButton.addEventListener('click', async function () {
+          try {
+            setStatus('Please wait...', true)
+            setBusy(true)
+            var envelope = lastEnvelope || JSON.parse(output.textContent || '{}')
+            var wallets = await helpers.v3WalletDecryptAsync(envelope, password.value)
+            setOutput(JSON.stringify(wallets, null, 2))
+            setStatus('Decrypted.', false)
+          } catch (err) {
+            setStatus(err.message, false)
+          } finally {
+            setBusy(false)
+          }
+        })
+      })()
+    </script>
+  </body>
+</html>

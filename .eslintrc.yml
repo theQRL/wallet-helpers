@@ -7,7 +7,6 @@ parserOptions:
 
   extends:
   - airbnb-base
-  - import-warnings
 
 env:
   browser: true
