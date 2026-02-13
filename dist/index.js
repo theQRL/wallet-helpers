@@ -1,7 +1,13 @@
 "use strict";
 
 var sha256 = require('js-sha256');
-var isEqual = require('util').isDeepStrictEqual;
+function sameKeys(expected, actual) {
+  if (expected.length !== actual.length) return false;
+  var set = new Set(actual);
+  return expected.every(function (k) {
+    return set.has(k);
+  });
+}
 var v3WalletHelpers = require('./v3wallet');
 function hexToBytes(hex) {
   for (var bytes = [], c = 0; c < hex.length; c += 2) bytes.push(parseInt(hex.substr(c, 2), 16));
@@ -76,14 +82,14 @@ function getWalletFileType(wallet) {
   const webWallet = ['address', 'addressB32', 'pk', 'hexseed', 'mnemonic', 'height', 'hashFunction', 'signatureType', 'index', 'encrypted'];
   const pythonNode = ['addresses', 'encrypted', 'version'];
   const convertedWebWallet = ['pk', 'hexseed', 'mnemonic', 'height', 'hashFunction', 'signatureType', 'index', 'address', 'encrypted'];
-  if (isEqual(pythonNode, Object.keys(wallet))) {
+  if (sameKeys(pythonNode, Object.keys(wallet))) {
     return 'PYTHON-NODE';
   }
   if (wallet instanceof Array) {
-    if (isEqual(webWallet, Object.keys(wallet[0]))) {
+    if (sameKeys(webWallet, Object.keys(wallet[0]))) {
       return 'WEB-WALLET';
     }
-    if (isEqual(convertedWebWallet, Object.keys(wallet[0]))) {
+    if (sameKeys(convertedWebWallet, Object.keys(wallet[0]))) {
       return 'CONVERTED-WEB-WALLET';
     }
   }
